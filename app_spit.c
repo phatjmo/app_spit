@@ -306,7 +306,7 @@ static void isAutomatedDialer(struct ast_channel *chan, const char *data)
 
 		if (f->frametype == AST_FRAME_DTMF_BEGIN || f->frametype == AST_FRAME_DTMF_END){
 			ast_verb(3, "CPA: Channel [%s] has incoming DTMF, Digit received: [%d]\n", ast_channel_name(chan), f->subclass.integer);
-			strcpy(spitStatus , "DTMF");
+			strcpy(spitStatus , "MACHINE");
 			sprintf(spitCause , "DTMFFRAME-%d", f->subclass.integer-48);
 			res = 1;	
 			break;
