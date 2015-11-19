@@ -307,7 +307,7 @@ static void isAutomatedDialer(struct ast_channel *chan, const char *data)
 		if (f->frametype == AST_FRAME_DTMF_BEGIN || f->frametype == AST_FRAME_DTMF_END){
 			ast_verb(3, "CPA: Channel [%s] has incoming DTMF, Digit received: [%d]\n", ast_channel_name(chan), f->subclass.integer);
 			strcpy(spitStatus , "MACHINE");
-			sprintf(spitCause , "DTMFFRAME-%d", f->subclass.integer-48);
+			sprintf(spitCause , "DTMF-%d", f->subclass.integer-48);
 			res = 1;	
 			break;
 		}
@@ -323,9 +323,9 @@ static void isAutomatedDialer(struct ast_channel *chan, const char *data)
 
 			iTotalTime += framelength;
 			if (iTotalTime >= totalAnalysisTime) {
-				ast_verb(3, "SPIT: Channel [%s]. Nothing definitive before timeout...\n", ast_channel_name(chan));
+				ast_verb(3, "SPIT: Channel [%s]. Nothing definitive before timeout, erring on the side of MACHINE...\n", ast_channel_name(chan));
 				ast_frfree(f);
-				strcpy(spitStatus , "NOTSURE");
+				strcpy(spitStatus , "MACHINE");
 				sprintf(spitCause , "TIMEOUT-%d", iTotalTime);
 				break;
 			}
@@ -433,9 +433,9 @@ static void isAutomatedDialer(struct ast_channel *chan, const char *data)
 	
 	if (!res) {
 		/* It took too long to get a frame back. Giving up. */
-		ast_verb(3, "SPIT: Channel [%s]. No frames detected...\n", ast_channel_name(chan));
-		strcpy(spitStatus , "NOFRAMES");
-		sprintf(spitCause , "TIMEOUT-%d", iTotalTime);
+		ast_verb(3, "SPIT: Channel [%s]. No frames detected, erring on the side of MACHINE...\n", ast_channel_name(chan));
+		strcpy(spitStatus , "MACHINE");
+		sprintf(spitCause , "NOFRAMES-%d", iTotalTime);
 	}
 
 	/* Set the status and cause on the channel */

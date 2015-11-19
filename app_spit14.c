@@ -4,6 +4,7 @@
  * Copyright (C) 2003 - 2006, Aheeva Technology.
  *
  * Claude Klimos (claude.klimos@aheeva.com)
+ * Justin Zimmer (jzimmer@leasehawk.com)
  *
  * See http://www.asterisk.org for more information about
  * the Asterisk project. Please do not directly contact
@@ -73,7 +74,7 @@ static char *descrip =
 "               HUMAN-<%d silenceDuration>-<%d afterGreetingSilence>\n"
 "               MAXWORDS-<%d wordsCount>-<%d maximumNumberOfWords>\n"
 "               LONGGREETING-<%d voiceDuration>-<%d greeting>\n"
-"				DTMFFRAME-<%d f->subclass.integer-48>\n";
+"				DTMFFRAME-<%d f->subclass>\n";
 
 #define STATE_IN_WORD       1
 #define STATE_IN_SILENCE    2
@@ -216,9 +217,9 @@ static void isAutomatedDialer(struct ast_channel *chan, void *data)
 		}
 
 		if (f->frametype == AST_FRAME_DTMF_BEGIN || f->frametype == AST_FRAME_DTMF_END){
-			ast_verb(3, "CPA: Channel [%s] has incoming DTMF, Digit received: [%d]\n", ast_channel_name(chan), f->subclass.integer);
+			ast_verbose(VERBOSE_PREFIX_3 "CPA: Channel [%s] has incoming DTMF, Digit received: [%d]\n", chan->name, f->subclass);
 			strcpy(spitStatus , "MACHINE");
-			sprintf(spitCause , "DTMFFRAME-%d", f->subclass.integer-48);
+			sprintf(spitCause , "DTMF-%d", f->subclass);
 			res = 1;	
 			break;
 		}
@@ -236,7 +237,7 @@ static void isAutomatedDialer(struct ast_channel *chan, void *data)
 				if (option_verbose > 2)	
 					ast_verbose(VERBOSE_PREFIX_3 "SPIT: Channel [%s]. Too long...\n", chan->name );
 				ast_frfree(f);
-				strcpy(spitStatus , "NOTSURE");
+				strcpy(spitStatus , "MACHINE");
 				sprintf(spitCause , "TOOLONG-%d", iTotalTime);
 				break;
 			}
@@ -279,7 +280,7 @@ static void isAutomatedDialer(struct ast_channel *chan, void *data)
 							    silenceDuration, afterGreetingSilence);
 					ast_frfree(f);
 					strcpy(spitStatus , "HUMAN");
-					sprintf(spitCause , "HUMAN-%d-%d", silenceDuration, afterGreetingSilence);
+					sprintf(spitCause , "AFTERGREET-%d-%d", silenceDuration, afterGreetingSilence);
 					res = 1;
 					break;
 				}
@@ -333,8 +334,8 @@ static void isAutomatedDialer(struct ast_channel *chan, void *data)
 		/* It took too long to get a frame back. Giving up. */
 		if (option_verbose > 2)
 			ast_verbose(VERBOSE_PREFIX_3 "SPIT: Channel [%s]. Too long...\n", chan->name);
-		strcpy(spitStatus , "NOTSURE");
-		sprintf(spitCause , "TOOLONG-%d", iTotalTime);
+		strcpy(spitStatus , "MACHINE");
+		sprintf(spitCause , "NOFRAMES-%d", iTotalTime);
 	}
 
 	/* Set the status and cause on the channel */
